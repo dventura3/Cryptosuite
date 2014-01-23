@@ -3,12 +3,14 @@
 #include <avr/pgmspace.h>
 #include "sha1.h"
 
+#include "debugstuff.c"
+
 #define SHA1_K0 0x5a827999
 #define SHA1_K20 0x6ed9eba1
 #define SHA1_K40 0x8f1bbcdc
 #define SHA1_K60 0xca62c1d6
 
-uint8_t sha1InitState[] PROGMEM = {
+const uint8_t sha1InitState[] PROGMEM = {
   0x01,0x23,0x45,0x67, // H0
   0x89,0xab,0xcd,0xef, // H1
   0xfe,0xdc,0xba,0x98, // H2
@@ -27,6 +29,7 @@ uint32_t Sha1Class::rol32(uint32_t number, uint8_t bits) {
 }
 
 void Sha1Class::hashBlock() {
+  // SHA1 only for now
   uint8_t i;
   uint32_t a,b,c,d,e,t;
 
@@ -72,7 +75,7 @@ void Sha1Class::addUncounted(uint8_t data) {
   }
 }
 
-void Sha1Class::write(uint8_t data) {
+size_t Sha1Class::write(uint8_t data) {
   ++byteCount;
   addUncounted(data);
 }
@@ -115,8 +118,11 @@ uint8_t* Sha1Class::result(void) {
   return state.b;
 }
 
+
 #define HMAC_IPAD 0x36
 #define HMAC_OPAD 0x5c
+
+
 
 void Sha1Class::initHmac(const uint8_t* key, int keyLength) {
   uint8_t i;
@@ -130,6 +136,7 @@ void Sha1Class::initHmac(const uint8_t* key, int keyLength) {
     // Block length keys are used as is
     memcpy(keyBuffer,key,keyLength);
   }
+  //for (i=0; i<BLOCK_LENGTH; i++) debugHH(keyBuffer[i]);
   // Start inner hash
   init();
   for (i=0; i<BLOCK_LENGTH; i++) {
@@ -139,8 +146,10 @@ void Sha1Class::initHmac(const uint8_t* key, int keyLength) {
 
 uint8_t* Sha1Class::resultHmac(void) {
   uint8_t i;
-  // Complete inner hash
+    // Complete inner hash
   memcpy(innerHash,result(),HASH_LENGTH);
+  // now innerHash[] contains H((K0 xor ipad)||text)
+
   // Calculate outer hash
   init();
   for (i=0; i<BLOCK_LENGTH; i++) write(keyBuffer[i] ^ HMAC_OPAD);
