@@ -3,12 +3,14 @@
 #include <avr/pgmspace.h>
 #include "sha1.h"
 
-#include "debugstuff.c"
+//#include "debugstuff.c"
 
 #define SHA1_K0 0x5a827999
 #define SHA1_K20 0x6ed9eba1
 #define SHA1_K40 0x8f1bbcdc
 #define SHA1_K60 0xca62c1d6
+
+using namespace sha1;
 
 const uint8_t sha1InitState[] PROGMEM = {
   0x01,0x23,0x45,0x67, // H0
